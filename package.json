@@ -1,0 +1,17 @@
+{
+  "name": "big-text",
+  "version": "0.1.0",
+  "description": "Present text as large as possible",
+  "bin": {
+    "big-text": "./bin/big-text.js"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "dependencies": {
+    "chokidar": "^5.0.0",
+    "ws": "^8.20.0"
+  }
+}

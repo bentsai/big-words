@@ -27,10 +27,17 @@ function parseArgs(args) {
   return { filePath, theme, font };
 }
 
+const USAGE = 'Usage: big-text <file> [--theme ink|paper] [--font sans|mono|serif]';
+
+if (args.includes('--help') || args.includes('-h')) {
+  console.log(USAGE);
+  process.exit(0);
+}
+
 const { filePath, theme, font } = parseArgs(args);
 
 if (!filePath) {
-  console.error('Usage: big-text <file> [--theme ink|paper] [--font sans|mono|serif]');
+  console.error(USAGE);
   process.exit(1);
 }
 
@@ -53,4 +60,7 @@ startServer({ filePath, theme, font }).then(({ port }) => {
   console.log(`big-text running at http://localhost:${port}`);
   console.log(`Watching: ${path.resolve(filePath)}`);
   console.log('Press Ctrl+C to stop');
+}).catch((err) => {
+  console.error(err.message);
+  process.exit(1);
 });

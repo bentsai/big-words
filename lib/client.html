@@ -113,22 +113,30 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-window.addEventListener('resize', () => renderSlide());
+let resizeRaf;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(resizeRaf);
+  resizeRaf = requestAnimationFrame(renderSlide);
+});
 
 const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-const ws = new WebSocket(proto + '//' + location.host);
-ws.addEventListener('message', (event) => {
-  const data = JSON.parse(event.data);
-  slides = data.slides;
+function connect() {
+  const ws = new WebSocket(proto + '//' + location.host);
+  ws.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+    slides = data.slides;
 
-  const root = document.documentElement;
-  root.className = '';
-  if (data.theme === 'ink') root.classList.add('ink');
-  if (data.font === 'mono') root.classList.add('font-mono');
-  if (data.font === 'serif') root.classList.add('font-serif');
+    const root = document.documentElement;
+    root.className = '';
+    if (data.theme === 'ink') root.classList.add('ink');
+    if (data.font === 'mono') root.classList.add('font-mono');
+    if (data.font === 'serif') root.classList.add('font-serif');
 
-  renderSlide();
-});
+    renderSlide();
+  });
+  ws.addEventListener('close', () => setTimeout(connect, 1000));
+}
+connect();
 </script>
 </body>
 </html>

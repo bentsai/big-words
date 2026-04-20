@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>big-text</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --font: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+  :root.ink {
+    --bg: #111111;
+    --fg: #f0f0f0;
+  }
+  :root.font-mono {
+    --font: 'SF Mono', Menlo, Consolas, monospace;
+  }
+  :root.font-serif {
+    --font: Georgia, 'Times New Roman', serif;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+  }
+
+  #slide {
+    position: absolute;
+    top: 3%;
+    left: 4%;
+    width: 92%;
+    height: 94%;
+    display: flex;
+    align-items: center;
+  }
+
+  #text {
+    width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div id="slide">
+  <div id="text"></div>
+</div>
+<script>
+const SCALE = [772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
+const textEl = document.getElementById('text');
+const slideEl = document.getElementById('slide');
+
+let slides = [];
+let currentIndex = 0;
+
+function fitText() {
+  const maxW = slideEl.clientWidth;
+  const maxH = slideEl.clientHeight;
+  for (let i = 0; i < SCALE.length; i++) {
+    textEl.style.fontSize = SCALE[i] + 'px';
+    if (textEl.scrollWidth <= maxW && textEl.scrollHeight <= maxH) {
+      return;
+    }
+  }
+}
+
+function renderSlide() {
+  if (slides.length === 0) {
+    textEl.textContent = '';
+    return;
+  }
+  if (currentIndex >= slides.length) currentIndex = slides.length - 1;
+  if (currentIndex < 0) currentIndex = 0;
+  textEl.textContent = slides[currentIndex];
+  fitText();
+}
+
+document.addEventListener('keydown', (e) => {
+  switch (e.key) {
+    case 'ArrowRight':
+    case ' ':
+    case 'Enter':
+      if (currentIndex < slides.length - 1) { currentIndex++; renderSlide(); }
+      e.preventDefault();
+      break;
+    case 'ArrowLeft':
+    case 'Backspace':
+      if (currentIndex > 0) { currentIndex--; renderSlide(); }
+      e.preventDefault();
+      break;
+    case 'Home':
+      currentIndex = 0; renderSlide();
+      e.preventDefault();
+      break;
+    case 'End':
+      currentIndex = slides.length - 1; renderSlide();
+      e.preventDefault();
+      break;
+  }
+});
+
+window.addEventListener('resize', () => renderSlide());
+
+const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(proto + '//' + location.host);
+ws.addEventListener('message', (event) => {
+  const data = JSON.parse(event.data);
+  slides = data.slides;
+
+  const root = document.documentElement;
+  root.className = '';
+  if (data.theme === 'ink') root.classList.add('ink');
+  if (data.font === 'mono') root.classList.add('font-mono');
+  if (data.font === 'serif') root.classList.add('font-serif');
+
+  renderSlide();
+});
+</script>
+</body>
+</html>

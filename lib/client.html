@@ -45,7 +45,7 @@
   #text {
     width: 100%;
     white-space: pre-wrap;
-    word-wrap: break-word;
+    overflow-wrap: normal;
     line-height: 0.95;
     letter-spacing: -0.02em;
     font-weight: 600;
@@ -69,7 +69,10 @@ function fitText() {
   const maxH = slideEl.clientHeight;
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
-    if (textEl.scrollWidth <= maxW && textEl.scrollHeight <= maxH) {
+    textEl.style.width = 'max-content';
+    const naturalW = textEl.scrollWidth;
+    textEl.style.width = '100%';
+    if (naturalW <= maxW && textEl.scrollHeight <= maxH) {
       return;
     }
   }

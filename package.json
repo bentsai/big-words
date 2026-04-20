@@ -6,12 +6,16 @@
     "big-text": "./bin/big-text.js"
   },
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test test/*.test.js",
+    "test:visual": "npx playwright test"
   },
   "keywords": [],
   "license": "MIT",
   "dependencies": {
     "chokidar": "^5.0.0",
     "ws": "^8.20.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
   }
 }

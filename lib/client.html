@@ -35,9 +35,9 @@
     --bg: #f73b6a;
     --fg: #ffffff;
   }
-  :root.yellow {
+  :root.orange {
     --bg: #f5a40a;
-    --fg: #1a1a1a;
+    --fg: #ffffff;
   }
   :root.font-mono {
     --font: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
@@ -69,7 +69,7 @@
     width: 100%;
     white-space: pre-wrap;
     overflow-wrap: break-word;
-    line-height: 0.95;
+    line-height: 1.05;
     letter-spacing: -0.02em;
     font-weight: 600;
   }
@@ -85,7 +85,8 @@ const textEl = document.getElementById('text');
 const slideEl = document.getElementById('slide');
 
 const FONTS = ['sans', 'mono', 'serif'];
-const THEMES = ['paper', 'ink', 'blue', 'purple', 'pink', 'red', 'yellow'];
+const THEMES = ['paper', 'ink', 'presenter'];
+const PRESENTER_COLORS = ['blue', 'purple', 'pink', 'red', 'orange', 'ink', 'paper'];
 let slides = [];
 let currentIndex = 0;
 let currentFont = 'sans';
@@ -101,9 +102,18 @@ function applyFont(font) {
 
 function applyTheme(theme) {
   currentTheme = theme;
+  updateThemeDisplay();
+}
+
+function updateThemeDisplay() {
   const root = document.documentElement;
-  THEMES.forEach(t => root.classList.remove(t));
-  if (theme !== 'paper') root.classList.add(theme);
+  ['ink', 'blue', 'purple', 'pink', 'red', 'orange'].forEach(t => root.classList.remove(t));
+  if (currentTheme === 'presenter') {
+    const color = PRESENTER_COLORS[currentIndex % PRESENTER_COLORS.length];
+    if (color !== 'paper') root.classList.add(color);
+  } else if (currentTheme === 'ink') {
+    root.classList.add('ink');
+  }
 }
 
 function fitText() {
@@ -123,7 +133,8 @@ function renderSlide() {
   }
   if (currentIndex >= slides.length) currentIndex = slides.length - 1;
   if (currentIndex < 0) currentIndex = 0;
-  textEl.textContent = slides[currentIndex];
+  textEl.innerHTML = slides[currentIndex].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+  updateThemeDisplay();
   fitText();
 }
 

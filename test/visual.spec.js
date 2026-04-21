@@ -149,25 +149,46 @@ test('t key cycles through themes', async ({ page }) => {
   expect(await getBg()).toBe('rgb(17, 17, 17)');
 
   await page.keyboard.press('t');
-  expect(await getBg()).toBe('rgb(10, 160, 245)'); // blue
-
-  await page.keyboard.press('t');
-  expect(await getBg()).toBe('rgb(127, 10, 245)'); // purple
-
-  await page.keyboard.press('t');
-  expect(await getBg()).toBe('rgb(245, 10, 214)'); // pink
-
-  await page.keyboard.press('t');
-  expect(await getBg()).toBe('rgb(247, 59, 106)'); // red
-
-  await page.keyboard.press('t');
-  expect(await getBg()).toBe('rgb(245, 164, 10)'); // yellow
+  // presenter theme: slide 0 = blue
+  expect(await getBg()).toBe('rgb(10, 160, 245)');
 
   await page.keyboard.press('t');
   expect(await getBg()).toBe('rgb(255, 255, 255)'); // paper
 
   await page.keyboard.press('t');
   expect(await getBg()).toBe('rgb(17, 17, 17)'); // ink (back to start)
+});
+
+test('presenter theme cycles colors per slide', async ({ page }) => {
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');
+
+  const getBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+  // Switch to presenter theme
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(10, 160, 245)'); // slide 0 = blue
+
+  await page.keyboard.press('ArrowRight');
+  expect(await getBg()).toBe('rgb(127, 10, 245)'); // slide 1 = purple
+
+  await page.keyboard.press('ArrowRight');
+  expect(await getBg()).toBe('rgb(245, 10, 214)'); // slide 2 = pink
+
+  await page.keyboard.press('ArrowRight');
+  expect(await getBg()).toBe('rgb(247, 59, 106)'); // slide 3 = red
+
+  // Go back
+  await page.keyboard.press('ArrowLeft');
+  expect(await getBg()).toBe('rgb(245, 10, 214)'); // slide 2 = pink again
+
+  // Switch back to ink
+  await page.keyboard.press('t'); // paper
+  await page.keyboard.press('t'); // ink
+  expect(await getBg()).toBe('rgb(17, 17, 17)');
+
+  // Go home for next test
+  await page.keyboard.press('Home');
 });
 
 test('themes apply correct colors', async ({ page }) => {

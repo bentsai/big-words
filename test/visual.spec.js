@@ -129,6 +129,45 @@ test('themes apply correct colors', async ({ page }) => {
   expect(colors.fg).toBe('rgb(240, 240, 240)');
 });
 
+test('multi-word text uses next scale step up from fitting without wrap', async ({ page }) => {
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship it today');
+
+  const result = await page.evaluate(() => {
+    const slide = document.getElementById('slide');
+    const text = document.getElementById('text');
+    const currentSize = parseInt(text.style.fontSize);
+    const SCALE = [772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
+    const idx = SCALE.indexOf(currentSize);
+    const nextUp = idx > 0 ? SCALE[idx - 1] : null;
+
+    const textRect = text.getBoundingClientRect();
+    const slideRect = slide.getBoundingClientRect();
+    const usedHeight = textRect.height / slideRect.height;
+
+    return { currentSize, nextUp, usedHeight };
+  });
+
+  // The next scale step up should overflow — meaning we're at the true maximum
+  if (result.nextUp) {
+    const overflows = await page.evaluate((nextUp) => {
+      const slide = document.getElementById('slide');
+      const text = document.getElementById('text');
+      const prev = text.style.fontSize;
+      text.style.fontSize = nextUp + 'px';
+      const overflows = text.scrollWidth > slide.clientWidth || text.scrollHeight > slide.clientHeight;
+      text.style.fontSize = prev;
+      return overflows;
+    }, result.nextUp);
+    expect(overflows).toBe(true);
+  }
+
+  // Text should use a meaningful portion of the viewport (at least 40% height)
+  expect(result.usedHeight).toBeGreaterThan(0.4);
+});
+
 test('live reload updates content', async ({ page }) => {
   await page.goto(`http://localhost:${server.port}`);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');

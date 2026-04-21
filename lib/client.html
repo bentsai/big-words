@@ -69,10 +69,7 @@ function fitText() {
   const maxH = slideEl.clientHeight;
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
-    textEl.style.width = 'max-content';
-    const naturalW = textEl.scrollWidth;
-    textEl.style.width = '100%';
-    if (naturalW <= maxW && textEl.scrollHeight <= maxH) {
+    if (textEl.scrollWidth <= maxW && textEl.scrollHeight <= maxH) {
       return;
     }
   }

@@ -64,8 +64,18 @@ const SCALE = [772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
 const textEl = document.getElementById('text');
 const slideEl = document.getElementById('slide');
 
+const FONTS = ['sans', 'mono', 'serif'];
 let slides = [];
 let currentIndex = 0;
+let currentFont = 'sans';
+
+function applyFont(font) {
+  currentFont = font;
+  const root = document.documentElement;
+  root.classList.remove('font-mono', 'font-serif');
+  if (font === 'mono') root.classList.add('font-mono');
+  if (font === 'serif') root.classList.add('font-serif');
+}
 
 function fitText() {
   const maxH = slideEl.clientHeight;
@@ -109,6 +119,11 @@ document.addEventListener('keydown', (e) => {
       currentIndex = slides.length - 1; renderSlide();
       e.preventDefault();
       break;
+    case 'f':
+      applyFont(FONTS[(FONTS.indexOf(currentFont) + 1) % FONTS.length]);
+      renderSlide();
+      e.preventDefault();
+      break;
   }
 });
 
@@ -128,8 +143,7 @@ function connect() {
     const root = document.documentElement;
     root.className = '';
     if (data.theme === 'ink') root.classList.add('ink');
-    if (data.font === 'mono') root.classList.add('font-mono');
-    if (data.font === 'serif') root.classList.add('font-serif');
+    applyFont(data.font || 'sans');
 
     renderSlide();
   });

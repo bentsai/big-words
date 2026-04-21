@@ -116,6 +116,29 @@ test('keyboard navigation works', async ({ page }) => {
   await expect(page.locator('#text')).toContainText('choose to go to the moon');
 });
 
+test('f key cycles through fonts', async ({ page }) => {
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');
+
+  const getFont = () => page.evaluate(() => {
+    const classes = document.documentElement.className;
+    if (classes.includes('font-mono')) return 'mono';
+    if (classes.includes('font-serif')) return 'serif';
+    return 'sans';
+  });
+
+  expect(await getFont()).toBe('sans');
+
+  await page.keyboard.press('f');
+  expect(await getFont()).toBe('mono');
+
+  await page.keyboard.press('f');
+  expect(await getFont()).toBe('serif');
+
+  await page.keyboard.press('f');
+  expect(await getFont()).toBe('sans');
+});
+
 test('themes apply correct colors', async ({ page }) => {
   await page.goto(`http://localhost:${server.port}`);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');

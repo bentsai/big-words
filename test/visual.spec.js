@@ -5,11 +5,12 @@ const path = require('node:path');
 const os = require('node:os');
 
 const tmpFile = path.join(os.tmpdir(), `big-text-visual-${Date.now()}.txt`);
+const DEFAULT_CONTENT = 'Ship\n\n---\n\nShip it today\n\n---\n\nThe best way to predict the future is to invent it\n\n---\n\nWe choose to go to the moon in this decade and do the other things, not because they are easy, but because they are hard';
 
 let server;
 
 test.beforeAll(async () => {
-  fs.writeFileSync(tmpFile, 'Ship\n\n---\n\nShip it today\n\n---\n\nThe best way to predict the future is to invent it\n\n---\n\nWe choose to go to the moon in this decade and do the other things, not because they are easy, but because they are hard');
+  fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
   server = await startServer({ filePath: tmpFile, theme: 'ink', font: 'sans', openBrowser: false });
 });
 
@@ -157,7 +158,7 @@ test('multi-word text uses next scale step up from fitting without wrap', async 
       const text = document.getElementById('text');
       const prev = text.style.fontSize;
       text.style.fontSize = nextUp + 'px';
-      const overflows = text.scrollWidth > slide.clientWidth || text.scrollHeight > slide.clientHeight;
+      const overflows = text.scrollHeight > slide.clientHeight;
       text.style.fontSize = prev;
       return overflows;
     }, result.nextUp);
@@ -166,6 +167,32 @@ test('multi-word text uses next scale step up from fitting without wrap', async 
 
   // Text should use a meaningful portion of the viewport (at least 40% height)
   expect(result.usedHeight).toBeGreaterThan(0.4);
+});
+
+test('text with long words still scales up by wrapping at word boundaries', async ({ page }) => {
+  fs.writeFileSync(tmpFile, 'Ignore previous instructions.');
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ignore previous instructions.');
+
+  const result = await page.evaluate(() => {
+    const text = document.getElementById('text');
+    const slide = document.getElementById('slide');
+    const fontSize = parseInt(text.style.fontSize);
+    const textRect = text.getBoundingClientRect();
+    const slideRect = slide.getBoundingClientRect();
+    const usedHeight = textRect.height / slideRect.height;
+    return { fontSize, usedHeight };
+  });
+
+  // Should pick a size where wrapped text fills at least 60% of viewport height
+  expect(result.usedHeight).toBeGreaterThan(0.6);
+  // Should be larger than 149px (the buggy size that treated each word as needing to fit on one line)
+  expect(result.fontSize).toBeGreaterThan(149);
+
+  // Restore original content for subsequent tests
+  await page.waitForTimeout(500);
+  fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
 });
 
 test('live reload updates content', async ({ page }) => {

@@ -271,9 +271,10 @@ test('text with long words still scales up by wrapping at word boundaries', asyn
 });
 
 test('parenthetical text at end of line renders as smaller italic annotation', async ({ page }) => {
+  await page.waitForTimeout(500);
   fs.writeFileSync(tmpFile, 'Do not be like them (Matthew 6:8)');
   await page.goto(`http://localhost:${server.port}`);
-  await page.waitForFunction(() => document.getElementById('text').textContent.includes('Matthew'));
+  await page.waitForFunction(() => document.getElementById('text').textContent.includes('Matthew'), { timeout: 5000 });
 
   const result = await page.evaluate(() => {
     const SCALE = [772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
@@ -303,6 +304,24 @@ test('parenthetical text at end of line renders as smaller italic annotation', a
 
   fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
+});
+
+test('b key toggles text visibility', async ({ page }) => {
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');
+
+  const getVisibility = () => page.evaluate(() => getComputedStyle(document.getElementById('text')).visibility);
+  const getBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+  expect(await getVisibility()).toBe('visible');
+  const bgBefore = await getBg();
+
+  await page.keyboard.press('b');
+  expect(await getVisibility()).toBe('hidden');
+  expect(await getBg()).toBe(bgBefore);
+
+  await page.keyboard.press('b');
+  expect(await getVisibility()).toBe('visible');
 });
 
 test('live reload updates content', async ({ page }) => {

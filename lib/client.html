@@ -185,6 +185,10 @@ document.addEventListener('keydown', (e) => {
       applyTheme(THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length]);
       e.preventDefault();
       break;
+    case 'b':
+      textEl.style.visibility = textEl.style.visibility === 'hidden' ? '' : 'hidden';
+      e.preventDefault();
+      break;
   }
 });
 

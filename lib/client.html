@@ -123,14 +123,22 @@ function updateThemeDisplay() {
 
 function fitText() {
   const maxH = slideEl.clientHeight;
+  const maxW = slideEl.clientWidth;
   const annotations = textEl.querySelectorAll('.annotation');
+  const text = slides[currentIndex] || '';
+  const singleWord = !/[\s\n]/.test(text.trim());
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
     const annSize = Math.min(i + 4, SCALE.length - 1);
     annotations.forEach(a => a.style.fontSize = SCALE[annSize] + 'px');
-    if (textEl.scrollHeight <= maxH) {
-      return;
+    if (textEl.scrollHeight > maxH) continue;
+    if (singleWord) {
+      textEl.style.whiteSpace = 'nowrap';
+      const natural = textEl.scrollWidth;
+      textEl.style.whiteSpace = '';
+      if (natural > maxW) continue;
     }
+    return;
   }
 }
 

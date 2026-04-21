@@ -139,6 +139,37 @@ test('f key cycles through fonts', async ({ page }) => {
   expect(await getFont()).toBe('sans');
 });
 
+test('t key cycles through themes', async ({ page }) => {
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');
+
+  const getBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+  // Server starts with ink theme
+  expect(await getBg()).toBe('rgb(17, 17, 17)');
+
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(10, 160, 245)'); // blue
+
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(127, 10, 245)'); // purple
+
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(245, 10, 214)'); // pink
+
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(247, 59, 106)'); // red
+
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(245, 164, 10)'); // yellow
+
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(255, 255, 255)'); // paper
+
+  await page.keyboard.press('t');
+  expect(await getBg()).toBe('rgb(17, 17, 17)'); // ink (back to start)
+});
+
 test('themes apply correct colors', async ({ page }) => {
   await page.goto(`http://localhost:${server.port}`);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');

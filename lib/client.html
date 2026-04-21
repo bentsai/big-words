@@ -19,6 +19,26 @@
     --bg: #111111;
     --fg: #f0f0f0;
   }
+  :root.blue {
+    --bg: #0aa0f5;
+    --fg: #ffffff;
+  }
+  :root.purple {
+    --bg: #7f0af5;
+    --fg: #ffffff;
+  }
+  :root.pink {
+    --bg: #f50ad6;
+    --fg: #ffffff;
+  }
+  :root.red {
+    --bg: #f73b6a;
+    --fg: #ffffff;
+  }
+  :root.yellow {
+    --bg: #f5a40a;
+    --fg: #1a1a1a;
+  }
   :root.font-mono {
     --font: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
   }
@@ -65,9 +85,11 @@ const textEl = document.getElementById('text');
 const slideEl = document.getElementById('slide');
 
 const FONTS = ['sans', 'mono', 'serif'];
+const THEMES = ['paper', 'ink', 'blue', 'purple', 'pink', 'red', 'yellow'];
 let slides = [];
 let currentIndex = 0;
 let currentFont = 'sans';
+let currentTheme = 'paper';
 
 function applyFont(font) {
   currentFont = font;
@@ -75,6 +97,13 @@ function applyFont(font) {
   root.classList.remove('font-mono', 'font-serif');
   if (font === 'mono') root.classList.add('font-mono');
   if (font === 'serif') root.classList.add('font-serif');
+}
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  const root = document.documentElement;
+  THEMES.forEach(t => root.classList.remove(t));
+  if (theme !== 'paper') root.classList.add(theme);
 }
 
 function fitText() {
@@ -124,6 +153,10 @@ document.addEventListener('keydown', (e) => {
       renderSlide();
       e.preventDefault();
       break;
+    case 't':
+      applyTheme(THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length]);
+      e.preventDefault();
+      break;
   }
 });
 
@@ -140,9 +173,7 @@ function connect() {
     const data = JSON.parse(event.data);
     slides = data.slides;
 
-    const root = document.documentElement;
-    root.className = '';
-    if (data.theme === 'ink') root.classList.add('ink');
+    applyTheme(data.theme || 'paper');
     applyFont(data.font || 'sans');
 
     renderSlide();

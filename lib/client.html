@@ -73,6 +73,11 @@
     letter-spacing: -0.02em;
     font-weight: 600;
   }
+
+  .annotation {
+    font-style: italic;
+    opacity: 0.5;
+  }
 </style>
 </head>
 <body>
@@ -118,8 +123,11 @@ function updateThemeDisplay() {
 
 function fitText() {
   const maxH = slideEl.clientHeight;
+  const annotations = textEl.querySelectorAll('.annotation');
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
+    const annSize = Math.min(i + 4, SCALE.length - 1);
+    annotations.forEach(a => a.style.fontSize = SCALE[annSize] + 'px');
     if (textEl.scrollHeight <= maxH) {
       return;
     }
@@ -133,7 +141,8 @@ function renderSlide() {
   }
   if (currentIndex >= slides.length) currentIndex = slides.length - 1;
   if (currentIndex < 0) currentIndex = 0;
-  textEl.innerHTML = slides[currentIndex].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+  const escaped = slides[currentIndex].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  textEl.innerHTML = escaped.replace(/(\([^)]+\))(?=\n|$)/gm, '<span class="annotation">$1</span>').replace(/\n/g, '<br>');
   updateThemeDisplay();
   fitText();
 }

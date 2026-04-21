@@ -270,6 +270,41 @@ test('text with long words still scales up by wrapping at word boundaries', asyn
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
 });
 
+test('parenthetical text at end of line renders as smaller italic annotation', async ({ page }) => {
+  fs.writeFileSync(tmpFile, 'Do not be like them (Matthew 6:8)');
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent.includes('Matthew'));
+
+  const result = await page.evaluate(() => {
+    const SCALE = [772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
+    const text = document.getElementById('text');
+    const ann = text.querySelector('.annotation');
+    if (!ann) return { found: false };
+    const parentSize = parseInt(text.style.fontSize);
+    const annSize = parseInt(ann.style.fontSize);
+    const parentIdx = SCALE.indexOf(parentSize);
+    const annIdx = SCALE.indexOf(annSize);
+    return {
+      found: true,
+      text: ann.textContent,
+      italic: getComputedStyle(ann).fontStyle === 'italic',
+      opacity: getComputedStyle(ann).opacity,
+      parentSize,
+      annSize,
+      stepsDiff: annIdx - parentIdx,
+    };
+  });
+
+  expect(result.found).toBe(true);
+  expect(result.text).toBe('(Matthew 6:8)');
+  expect(result.italic).toBe(true);
+  expect(parseFloat(result.opacity)).toBeLessThan(1);
+  expect(result.stepsDiff).toBe(4);
+
+  fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
+});
+
 test('live reload updates content', async ({ page }) => {
   await page.goto(`http://localhost:${server.port}`);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');

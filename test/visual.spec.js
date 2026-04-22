@@ -164,6 +164,29 @@ test('t key cycles through themes', async ({ page }) => {
   expect(await getBg()).toBe('rgb(17, 17, 17)'); // ink (back to start)
 });
 
+test('gradient theme body is transparent so pseudo-element shows through', async ({ page }) => {
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');
+
+  // Switch to gradient: ink -> presenter -> gradient
+  await page.keyboard.press('t');
+  await page.keyboard.press('t');
+
+  const result = await page.evaluate(() => {
+    const bodyBg = getComputedStyle(document.body).backgroundColor;
+    const before = getComputedStyle(document.body, '::before');
+    const hasBgImage = before.backgroundImage.includes('gradient');
+    return { bodyBg, hasBgImage };
+  });
+
+  expect(result.bodyBg).toBe('rgba(0, 0, 0, 0)');
+  expect(result.hasBgImage).toBe(true);
+
+  // Return to ink
+  await page.keyboard.press('t'); // paper
+  await page.keyboard.press('t'); // ink
+});
+
 test('presenter theme cycles colors per slide', async ({ page }) => {
   await page.goto(`http://localhost:${server.port}`);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');

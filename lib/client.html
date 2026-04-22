@@ -43,9 +43,19 @@
     --fg: #ffffff;
   }
   :root.gradient body {
+    background: transparent;
+  }
+  :root.gradient body::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
     background: linear-gradient(to right, #0aa0f5 0%, #2ce0bf 19%, #76dd2c 40%, #f5a40a 60%, #f50ad6 83%, #0aa0f5 100%);
     background-size: 10000px 100%;
     animation: gradient 240s linear infinite;
+    transform: rotate(-16deg);
+    z-index: -1;
   }
   @keyframes gradient {
     0% { background-position-x: 0; }

@@ -215,7 +215,7 @@ test('multi-word text uses next scale step up from fitting without wrap', async 
     const slide = document.getElementById('slide');
     const text = document.getElementById('text');
     const currentSize = parseInt(text.style.fontSize);
-    const SCALE = [772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
+    const SCALE = [1334,1112,926,772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
     const idx = SCALE.indexOf(currentSize);
     const nextUp = idx > 0 ? SCALE[idx - 1] : null;
 
@@ -277,7 +277,7 @@ test('parenthetical text at end of line renders as smaller italic annotation', a
   await page.waitForFunction(() => document.getElementById('text').textContent.includes('Matthew'), { timeout: 5000 });
 
   const result = await page.evaluate(() => {
-    const SCALE = [772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
+    const SCALE = [1334,1112,926,772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
     const text = document.getElementById('text');
     const ann = text.querySelector('.annotation');
     if (!ann) return { found: false };

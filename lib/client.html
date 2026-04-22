@@ -145,14 +145,32 @@ function updateThemeDisplay() {
   }
 }
 
+const _boxDrawingCanvas = document.createElement('canvas');
+const _boxDrawingCtx = _boxDrawingCanvas.getContext('2d');
+
+function measureBoxDrawingLineHeight(font, fontSize) {
+  _boxDrawingCtx.font = `600 ${fontSize}px ${font}`;
+  const m = _boxDrawingCtx.measureText('│');
+  return (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) / fontSize;
+}
+
+const BOX_DRAWING_RE = /[\u2500-\u257F]/;
+
 function fitText() {
   const maxH = slideEl.clientHeight;
   const maxW = slideEl.clientWidth;
   const annotations = textEl.querySelectorAll('.annotation');
   const text = slides[currentIndex] || '';
   const singleWord = !/[\s\n]/.test(text.trim());
+  const hasBoxDrawing = BOX_DRAWING_RE.test(text);
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
+    if (hasBoxDrawing) {
+      const lh = measureBoxDrawingLineHeight(getComputedStyle(textEl).fontFamily, SCALE[i]);
+      textEl.style.lineHeight = lh;
+    } else {
+      textEl.style.lineHeight = '';
+    }
     const annSize = Math.min(i + 4, SCALE.length - 1);
     annotations.forEach(a => a.style.fontSize = SCALE[annSize] + 'px');
     if (textEl.scrollHeight > maxH) continue;

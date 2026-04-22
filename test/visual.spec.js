@@ -353,6 +353,34 @@ test('b key toggles text visibility', async ({ page }) => {
   expect(await getVisibility()).toBe('visible');
 });
 
+test('box-drawing characters get tighter line-height for seamless verticals', async ({ page }) => {
+  const boxContent = '┌──────┐\n│      │\n│ Hi   │\n│      │\n└──────┘';
+  await page.waitForTimeout(500);
+  fs.writeFileSync(tmpFile, boxContent);
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent.includes('┌'), { timeout: 5000 });
+
+  const result = await page.evaluate(() => {
+    const text = document.getElementById('text');
+    const lh = parseFloat(text.style.lineHeight);
+    return { lineHeight: lh };
+  });
+
+  expect(result.lineHeight).toBeLessThan(1.05);
+  expect(result.lineHeight).toBeGreaterThan(0.5);
+
+  fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
+});
+
+test('normal text does not get box-drawing line-height override', async ({ page }) => {
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');
+
+  const lh = await page.evaluate(() => document.getElementById('text').style.lineHeight);
+  expect(lh).toBe('');
+});
+
 test('live reload updates content', async ({ page }) => {
   await page.goto(`http://localhost:${server.port}`);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship');

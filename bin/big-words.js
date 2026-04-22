@@ -27,7 +27,7 @@ function parseArgs(args) {
   return { filePath, theme, font };
 }
 
-const USAGE = 'Usage: big-text <file> [--theme paper|ink|presenter] [--font sans|mono|serif]';
+const USAGE = 'Usage: big-words <file> [--theme paper|ink|presenter] [--font sans|mono|serif]';
 
 if (args.includes('--help') || args.includes('-h')) {
   console.log(USAGE);
@@ -57,7 +57,7 @@ if (!FONTS.includes(font)) {
 }
 
 startServer({ filePath, theme, font }).then(({ port }) => {
-  console.log(`big-text running at http://localhost:${port}`);
+  console.log(`big-words running at http://localhost:${port}`);
   console.log(`Watching: ${path.resolve(filePath)}`);
   console.log('Press Ctrl+C to stop');
 }).catch((err) => {

@@ -1,9 +1,9 @@
 {
-  "name": "big-text",
+  "name": "big-words",
   "version": "0.1.0",
   "description": "Present text as large as possible",
   "bin": {
-    "big-text": "./bin/big-text.js"
+    "big-words": "./bin/big-words.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js",

@@ -1,4 +1,4 @@
-# big-text
+# big-words
 
 Present text as large as possible. A CLI tool that watches a text file and displays each slide in the browser with text scaled to fill the viewport.
 
@@ -11,7 +11,7 @@ npm install
 ## Usage
 
 ```
-big-text <file> [--theme ink|paper] [--font sans|mono|serif]
+big-words <file> [--theme ink|paper] [--font sans|mono|serif]
 ```
 
 This starts a local server, opens the browser, and renders your text. Edit the file in your editor and the browser updates instantly.
@@ -36,7 +36,7 @@ the future is to invent it
 Then run:
 
 ```
-big-text slides.txt
+big-words slides.txt
 ```
 
 ### Options

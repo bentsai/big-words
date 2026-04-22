@@ -38,7 +38,7 @@ function connectAndWaitForMessage(port) {
 }
 
 describe('server', () => {
-  const tmpFile = path.join(os.tmpdir(), `big-text-test-${Date.now()}.txt`);
+  const tmpFile = path.join(os.tmpdir(), `big-words-test-${Date.now()}.txt`);
   let server;
 
   after(async () => {

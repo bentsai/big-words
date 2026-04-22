@@ -151,7 +151,7 @@ const _boxDrawingCtx = _boxDrawingCanvas.getContext('2d');
 function measureBoxDrawingLineHeight(font, fontSize) {
   _boxDrawingCtx.font = `600 ${fontSize}px ${font}`;
   const m = _boxDrawingCtx.measureText('│');
-  return (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) / fontSize;
+  return (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) / fontSize - 0.02;
 }
 
 const BOX_DRAWING_RE = /[\u2500-\u257F]/;
@@ -163,6 +163,7 @@ function fitText() {
   const text = slides[currentIndex] || '';
   const singleWord = !/[\s\n]/.test(text.trim());
   const hasBoxDrawing = BOX_DRAWING_RE.test(text);
+  textEl.style.letterSpacing = hasBoxDrawing ? '0' : '';
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
     if (hasBoxDrawing) {

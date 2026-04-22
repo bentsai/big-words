@@ -11,7 +11,7 @@ npm install
 ## Usage
 
 ```
-big-words <file> [--theme paper|ink|presenter|gradient] [--font sans|mono|serif]
+big-words <file>
 ```
 
 This starts a local server, opens the browser, and renders your text. Edit the file in your editor and the browser updates instantly.
@@ -21,6 +21,11 @@ This starts a local server, opens the browser, and renders your text. Edit the f
 Create a file called `slides.txt`:
 
 ```
+theme: ink
+font: serif
+
+---
+
 Ship
 
 ---
@@ -39,17 +44,18 @@ Then run:
 big-words slides.txt
 ```
 
-### Options
+### Front matter
 
-| Flag | Values | Default | Description |
-|------|--------|---------|-------------|
-| `--theme` | `paper`, `ink`, `presenter`, `gradient` | `paper` | Color scheme. Presenter cycles colors per slide. |
-| `--font` | `sans`, `mono`, `serif` | `sans` | Font family. |
-| `--help` | | | Show usage. |
+Configuration goes at the top of the file, before the first `---`:
+
+| Key | Values | Default |
+|-----|--------|---------|
+| `theme` | `paper`, `ink`, `presenter`, `gradient` | `paper` |
+| `font` | `sans`, `mono`, `serif` | `sans` |
 
 ### Slides
 
-Slides are separated by `---` on its own line. Text is displayed as-is (no markdown rendering). Newlines within a slide are preserved.
+Slides are separated by `---`. The first `---` ends the front matter and begins the first slide. Text is displayed as-is (no markdown rendering). Newlines within a slide are preserved.
 
 ### Navigation
 

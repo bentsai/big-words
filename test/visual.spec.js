@@ -5,13 +5,13 @@ const path = require('node:path');
 const os = require('node:os');
 
 const tmpFile = path.join(os.tmpdir(), `big-words-visual-${Date.now()}.txt`);
-const DEFAULT_CONTENT = 'Ship\n\n---\n\nShip it today\n\n---\n\nThe best way to predict the future is to invent it\n\n---\n\nWe choose to go to the moon in this decade and do the other things, not because they are easy, but because they are hard';
+const DEFAULT_CONTENT = 'theme: ink\nfont: sans\n\n---\n\nShip\n\n---\n\nShip it today\n\n---\n\nThe best way to predict the future is to invent it\n\n---\n\nWe choose to go to the moon in this decade and do the other things, not because they are easy, but because they are hard';
 
 let server;
 
 test.beforeAll(async () => {
   fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
-  server = await startServer({ filePath: tmpFile, theme: 'ink', font: 'sans', openBrowser: false });
+  server = await startServer({ filePath: tmpFile, openBrowser: false });
 });
 
 test.afterAll(async () => {
@@ -339,4 +339,8 @@ test('live reload updates content', async ({ page }) => {
 
   const text = await page.locator('#text').textContent();
   expect(text).toBe('UPDATED');
+
+  await page.waitForTimeout(500);
+  fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
 });

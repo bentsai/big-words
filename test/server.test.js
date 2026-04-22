@@ -47,11 +47,9 @@ describe('server', () => {
   });
 
   it('serves HTML on GET /', async () => {
-    fs.writeFileSync(tmpFile, 'Hello\n---\nWorld');
+    fs.writeFileSync(tmpFile, 'theme: paper\nfont: sans\n---\nHello\n---\nWorld');
     server = await startServer({
       filePath: tmpFile,
-      theme: 'paper',
-      font: 'sans',
       openBrowser: false,
     });
     const res = await httpGet(`http://localhost:${server.port}/`);
@@ -90,6 +88,32 @@ describe('server', () => {
 
     const msg = await updatePromise;
     assert.deepStrictEqual(msg.slides, ['Updated']);
+    ws.close();
+  });
+
+  it('sends updated config when front matter changes', async () => {
+    const { ws, msg: initialMsg } = await connectAndWaitForMessage(server.port);
+    assert.equal(initialMsg.theme, 'paper');
+    assert.equal(initialMsg.font, 'sans');
+
+    const updatePromise = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Config change message timeout'));
+      }, 2000);
+
+      ws.once('message', (data) => {
+        clearTimeout(timeout);
+        resolve(JSON.parse(data.toString()));
+      });
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+    fs.writeFileSync(tmpFile, 'theme: ink\nfont: mono\n---\nNew slide');
+
+    const msg = await updatePromise;
+    assert.equal(msg.theme, 'ink');
+    assert.equal(msg.font, 'mono');
+    assert.deepStrictEqual(msg.slides, ['New slide']);
     ws.close();
   });
 });

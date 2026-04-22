@@ -2,46 +2,88 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const { parseSlides } = require('../lib/parser.js');
 
+const DEFAULTS = { theme: 'paper', font: 'sans' };
+
 describe('parseSlides', () => {
   it('returns a single slide when no separator', () => {
-    assert.deepStrictEqual(parseSlides('Hello world'), ['Hello world']);
+    const result = parseSlides('Hello world');
+    assert.deepStrictEqual(result.slides, ['Hello world']);
+    assert.deepStrictEqual(result.config, DEFAULTS);
   });
 
-  it('splits on --- separator', () => {
-    const input = 'Slide one\n\n---\n\nSlide two';
-    assert.deepStrictEqual(parseSlides(input), ['Slide one', 'Slide two']);
+  it('treats content before first --- as front matter, not a slide', () => {
+    const result = parseSlides('some text\n---\nSlide one\n---\nSlide two');
+    assert.deepStrictEqual(result.slides, ['Slide one', 'Slide two']);
   });
 
   it('handles --- with surrounding whitespace', () => {
-    const input = 'A\n  ---  \nB';
-    assert.deepStrictEqual(parseSlides(input), ['A', 'B']);
+    const result = parseSlides('\n  ---  \nB');
+    assert.deepStrictEqual(result.slides, ['B']);
   });
 
   it('trims leading and trailing whitespace from each slide', () => {
-    const input = '  Hello  \n---\n  World  ';
-    assert.deepStrictEqual(parseSlides(input), ['Hello', 'World']);
+    const result = parseSlides('\n---\n  Hello  \n---\n  World  ');
+    assert.deepStrictEqual(result.slides, ['Hello', 'World']);
   });
 
   it('skips empty slides', () => {
-    const input = 'A\n---\n\n---\nB';
-    assert.deepStrictEqual(parseSlides(input), ['A', 'B']);
+    const result = parseSlides('\n---\nA\n---\n\n---\nB');
+    assert.deepStrictEqual(result.slides, ['A', 'B']);
   });
 
   it('preserves newlines within a slide', () => {
-    const input = 'Line one\nLine two';
-    assert.deepStrictEqual(parseSlides(input), ['Line one\nLine two']);
+    const result = parseSlides('Line one\nLine two');
+    assert.deepStrictEqual(result.slides, ['Line one\nLine two']);
   });
 
   it('handles three slides', () => {
-    const input = 'One\n---\nTwo\n---\nThree';
-    assert.deepStrictEqual(parseSlides(input), ['One', 'Two', 'Three']);
+    const result = parseSlides('\n---\nOne\n---\nTwo\n---\nThree');
+    assert.deepStrictEqual(result.slides, ['One', 'Two', 'Three']);
   });
 
   it('returns empty array for empty input', () => {
-    assert.deepStrictEqual(parseSlides(''), []);
+    const result = parseSlides('');
+    assert.deepStrictEqual(result.slides, []);
+    assert.deepStrictEqual(result.config, DEFAULTS);
   });
 
   it('returns empty array for whitespace-only input', () => {
-    assert.deepStrictEqual(parseSlides('   \n\n  '), []);
+    const result = parseSlides('   \n\n  ');
+    assert.deepStrictEqual(result.slides, []);
+    assert.deepStrictEqual(result.config, DEFAULTS);
+  });
+
+  it('parses theme from front matter', () => {
+    const result = parseSlides('theme: gradient\n---\nSlide');
+    assert.equal(result.config.theme, 'gradient');
+    assert.deepStrictEqual(result.slides, ['Slide']);
+  });
+
+  it('parses font from front matter', () => {
+    const result = parseSlides('font: mono\n---\nSlide');
+    assert.equal(result.config.font, 'mono');
+  });
+
+  it('parses both theme and font', () => {
+    const result = parseSlides('theme: ink\nfont: serif\n---\nSlide');
+    assert.equal(result.config.theme, 'ink');
+    assert.equal(result.config.font, 'serif');
+  });
+
+  it('uses defaults for unrecognized keys', () => {
+    const result = parseSlides('title: Hello\nauthor: Me\n---\nSlide');
+    assert.deepStrictEqual(result.config, DEFAULTS);
+    assert.deepStrictEqual(result.slides, ['Slide']);
+  });
+
+  it('ignores invalid theme/font values', () => {
+    const result = parseSlides('theme: neon\nfont: comic\n---\nSlide');
+    assert.deepStrictEqual(result.config, DEFAULTS);
+  });
+
+  it('handles empty front matter', () => {
+    const result = parseSlides('\n---\nSlide');
+    assert.deepStrictEqual(result.config, DEFAULTS);
+    assert.deepStrictEqual(result.slides, ['Slide']);
   });
 });

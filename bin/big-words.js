@@ -6,7 +6,7 @@ const { startServer } = require('../lib/server.js');
 
 const args = process.argv.slice(2);
 
-const THEMES = ['paper', 'ink', 'presenter'];
+const THEMES = ['paper', 'ink', 'presenter', 'gradient'];
 const FONTS = ['sans', 'mono', 'serif'];
 
 function parseArgs(args) {
@@ -27,7 +27,7 @@ function parseArgs(args) {
   return { filePath, theme, font };
 }
 
-const USAGE = 'Usage: big-words <file> [--theme paper|ink|presenter] [--font sans|mono|serif]';
+const USAGE = 'Usage: big-words <file> [--theme paper|ink|presenter|gradient] [--font sans|mono|serif]';
 
 if (args.includes('--help') || args.includes('-h')) {
   console.log(USAGE);

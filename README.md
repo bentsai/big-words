@@ -11,7 +11,7 @@ npm install
 ## Usage
 
 ```
-big-words <file> [--theme ink|paper] [--font sans|mono|serif]
+big-words <file> [--theme paper|ink|presenter|gradient] [--font sans|mono|serif]
 ```
 
 This starts a local server, opens the browser, and renders your text. Edit the file in your editor and the browser updates instantly.
@@ -43,7 +43,7 @@ big-words slides.txt
 
 | Flag | Values | Default | Description |
 |------|--------|---------|-------------|
-| `--theme` | `paper`, `ink` | `paper` | Color scheme. Paper is light, ink is dark. |
+| `--theme` | `paper`, `ink`, `presenter`, `gradient` | `paper` | Color scheme. Presenter cycles colors per slide. |
 | `--font` | `sans`, `mono`, `serif` | `sans` | Font family. |
 | `--help` | | | Show usage. |
 
@@ -59,6 +59,9 @@ Slides are separated by `---` on its own line. Text is displayed as-is (no markd
 | Left / Backspace | Previous slide |
 | Home | First slide |
 | End | Last slide |
+| t | Cycle theme |
+| f | Cycle font |
+| b | Toggle blank screen |
 
 ## How text scaling works
 

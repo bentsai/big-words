@@ -153,6 +153,11 @@ test('t key cycles through themes', async ({ page }) => {
   expect(await getBg()).toBe('rgb(10, 160, 245)');
 
   await page.keyboard.press('t');
+  // gradient theme — bg is animated, just check class is applied
+  const hasGradient = await page.evaluate(() => document.documentElement.classList.contains('gradient'));
+  expect(hasGradient).toBe(true);
+
+  await page.keyboard.press('t');
   expect(await getBg()).toBe('rgb(255, 255, 255)'); // paper
 
   await page.keyboard.press('t');
@@ -183,6 +188,7 @@ test('presenter theme cycles colors per slide', async ({ page }) => {
   expect(await getBg()).toBe('rgb(245, 10, 214)'); // slide 2 = pink again
 
   // Switch back to ink
+  await page.keyboard.press('t'); // gradient
   await page.keyboard.press('t'); // paper
   await page.keyboard.press('t'); // ink
   expect(await getBg()).toBe('rgb(17, 17, 17)');

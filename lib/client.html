@@ -205,6 +205,7 @@ function connect() {
     const data = JSON.parse(event.data);
     slides = data.slides;
 
+    if (data.title) document.title = data.title;
     applyTheme(data.theme || 'paper');
     applyFont(data.font || 'sans');
 

@@ -6,7 +6,7 @@
 <title>big-words</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@200;600&family=IBM+Plex+Mono:wght@200;600&family=IBM+Plex+Sans:wght@200;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@200;600&family=IBM+Plex+Mono:wght@200;600&family=IBM+Plex+Sans:wght@200;600&family=DM+Serif+Display:ital@0;1&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -54,6 +54,9 @@
   }
   :root.font-serif {
     --font: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  }
+  :root.font-pixel {
+    --font: 'Silkscreen', cursive;
   }
 
   html, body {
@@ -120,6 +123,9 @@
   :root.font-serif .subtext {
     font-family: 'DM Sans', -apple-system, 'Helvetica Neue', Arial, sans-serif;
   }
+  :root.font-pixel .text {
+    font-weight: 400;
+  }
 
   .blank { line-height: 0.25; }
 
@@ -145,7 +151,7 @@ const layerA = { layer: document.getElementById('layer-a'), slide: document.getE
 const layerB = { layer: document.getElementById('layer-b'), slide: document.querySelector('#layer-b .slide'), text: document.querySelector('#layer-b .text') };
 let activeLayer = layerA;
 
-const FONTS = ['sans', 'mono', 'serif'];
+const FONTS = ['sans', 'mono', 'serif', 'pixel'];
 const THEMES = ['paper', 'ink', 'presenter', 'gradient'];
 const PRESENTER_COLORS = ['blue', 'purple', 'pink', 'red', 'orange', 'ink', 'paper'];
 let slides = [];
@@ -157,9 +163,10 @@ let currentTransition = 'none';
 function applyFont(font) {
   currentFont = font;
   const root = document.documentElement;
-  root.classList.remove('font-mono', 'font-serif');
+  root.classList.remove('font-mono', 'font-serif', 'font-pixel');
   if (font === 'mono') root.classList.add('font-mono');
   if (font === 'serif') root.classList.add('font-serif');
+  if (font === 'pixel') root.classList.add('font-pixel');
 }
 
 function applyTheme(theme) {

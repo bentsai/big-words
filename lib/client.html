@@ -187,21 +187,16 @@ function fitText(layer) {
   const maxW = slideEl.clientWidth;
   const annotations = textEl.querySelectorAll('.annotation');
   const subtextEl = textEl.querySelector('.subtext');
-  const slide = slides[currentIndex];
-  const text = slide ? slide.text : '';
-  const singleWord = !/[\s\n]/.test(text.trim());
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
     if (subtextEl) subtextEl.style.fontSize = Math.round(SCALE[i] / 2) + 'px';
     const annSize = Math.min(i + 4, SCALE.length - 1);
     annotations.forEach(a => a.style.fontSize = SCALE[annSize] + 'px');
     if (textEl.scrollHeight > maxH) continue;
-    if (singleWord) {
-      textEl.style.whiteSpace = 'nowrap';
-      const natural = textEl.scrollWidth;
-      textEl.style.whiteSpace = '';
-      if (natural > maxW) continue;
-    }
+    textEl.style.overflowWrap = 'normal';
+    const overflows = textEl.scrollWidth > maxW;
+    textEl.style.overflowWrap = '';
+    if (overflows) continue;
     return;
   }
 }

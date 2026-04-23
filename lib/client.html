@@ -96,6 +96,8 @@
     font-weight: 600;
   }
 
+  .center { text-align: center; }
+
   .annotation {
     font-style: italic;
     opacity: 0.5;
@@ -193,7 +195,11 @@ function renderSlide() {
   if (currentIndex >= slides.length) currentIndex = slides.length - 1;
   if (currentIndex < 0) currentIndex = 0;
   const escaped = slides[currentIndex].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  textEl.innerHTML = escaped.replace(/(\([^)]+\))(?=\n|$)/gm, '<span class="annotation">$1</span>').replace(/\n/g, '<br>');
+  textEl.innerHTML = escaped.split('\n').map(line => {
+    const annotated = line.replace(/(\([^)]+\))$/, '<span class="annotation">$1</span>');
+    if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
+    return '<div>' + annotated + '</div>';
+  }).join('');
   updateThemeDisplay();
   fitText();
 }

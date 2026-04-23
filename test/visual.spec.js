@@ -25,8 +25,9 @@ test('single word is never broken across lines', async ({ page }) => {
 
   const lines = await page.evaluate(() => {
     const el = document.getElementById('text');
+    const textNode = el.firstChild.firstChild;
     const range = document.createRange();
-    range.selectNodeContents(el);
+    range.selectNodeContents(textNode);
     const rects = range.getClientRects();
     return rects.length;
   });
@@ -57,7 +58,7 @@ test('multi-word text wraps at spaces not mid-word', async ({ page }) => {
     const text = el.textContent;
     const words = text.split(/\s+/);
     const range = document.createRange();
-    const textNode = el.firstChild;
+    const textNode = el.firstChild.firstChild;
     let pos = 0;
     for (const word of words) {
       const start = text.indexOf(word, pos);
@@ -368,6 +369,36 @@ test('box-drawing characters get tighter line-height for seamless verticals', as
 
   expect(result.lineHeight).toBeLessThan(1.05);
   expect(result.lineHeight).toBeGreaterThan(0.5);
+
+  fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
+  await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
+});
+
+test('tab-indented line renders centered', async ({ page }) => {
+  await page.waitForTimeout(500);
+  fs.writeFileSync(tmpFile, '\tcentered line\nnot centered');
+  await page.goto(`http://localhost:${server.port}`);
+  await page.waitForFunction(() => document.getElementById('text').textContent.includes('centered line'), { timeout: 5000 });
+
+  const result = await page.evaluate(() => {
+    const text = document.getElementById('text');
+    const centered = text.querySelector('.center');
+    const divs = text.querySelectorAll('div');
+    const nonCentered = Array.from(divs).find(d => !d.classList.contains('center'));
+    return {
+      hasCenterDiv: !!centered,
+      centeredText: centered ? centered.textContent : null,
+      centeredAlign: centered ? getComputedStyle(centered).textAlign : null,
+      nonCenteredAlign: nonCentered ? getComputedStyle(nonCentered).textAlign : null,
+      totalDivs: divs.length,
+    };
+  });
+
+  expect(result.hasCenterDiv).toBe(true);
+  expect(result.centeredText).toBe('centered line');
+  expect(result.centeredAlign).toBe('center');
+  expect(result.nonCenteredAlign).not.toBe('center');
+  expect(result.totalDivs).toBe(2);
 
   fs.writeFileSync(tmpFile, DEFAULT_CONTENT);
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });

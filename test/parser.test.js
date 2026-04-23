@@ -21,7 +21,7 @@ describe('parseSlides', () => {
     assert.deepStrictEqual(result.slides, ['B']);
   });
 
-  it('trims leading and trailing whitespace from each slide', () => {
+  it('trims leading spaces and trailing whitespace from each slide', () => {
     const result = parseSlides('\n---\n  Hello  \n---\n  World  ');
     assert.deepStrictEqual(result.slides, ['Hello', 'World']);
   });
@@ -85,5 +85,26 @@ describe('parseSlides', () => {
     const result = parseSlides('\n---\nSlide');
     assert.deepStrictEqual(result.config, DEFAULTS);
     assert.deepStrictEqual(result.slides, ['Slide']);
+  });
+
+  it('preserves leading tabs on lines', () => {
+    const result = parseSlides('\n---\n\tcentered\nnot centered');
+    assert.deepStrictEqual(result.slides, ['\tcentered\nnot centered']);
+  });
+
+  it('preserves leading tabs in single-slide mode', () => {
+    const result = parseSlides('\tcentered');
+    assert.deepStrictEqual(result.slides, ['\tcentered']);
+  });
+
+  it('strips leading spaces but keeps tabs', () => {
+    const result = parseSlides('\n---\n  \tindented');
+    assert.deepStrictEqual(result.slides, ['\tindented']);
+  });
+
+  it('preserves mid-line tabs without centering', () => {
+    const result = parseSlides('hello\tworld');
+    assert.deepStrictEqual(result.slides, ['hello\tworld']);
+    assert.ok(!result.slides[0].startsWith('\t'));
   });
 });

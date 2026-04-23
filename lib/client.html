@@ -170,17 +170,6 @@ function updateThemeDisplay() {
   }
 }
 
-const _boxDrawingCanvas = document.createElement('canvas');
-const _boxDrawingCtx = _boxDrawingCanvas.getContext('2d');
-
-function measureBoxDrawingLineHeight(font, fontSize) {
-  _boxDrawingCtx.font = `600 ${fontSize}px ${font}`;
-  const m = _boxDrawingCtx.measureText('│');
-  return (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) / fontSize - 0.02;
-}
-
-const BOX_DRAWING_RE = /[─-╿]/;
-
 function fitText(layer) {
   const slideEl = layer.slide;
   const textEl = layer.text;
@@ -189,16 +178,8 @@ function fitText(layer) {
   const annotations = textEl.querySelectorAll('.annotation');
   const text = slides[currentIndex] || '';
   const singleWord = !/[\s\n]/.test(text.trim());
-  const hasBoxDrawing = BOX_DRAWING_RE.test(text);
-  textEl.style.letterSpacing = hasBoxDrawing ? '0' : '';
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
-    if (hasBoxDrawing) {
-      const lh = measureBoxDrawingLineHeight(getComputedStyle(textEl).fontFamily, SCALE[i]);
-      textEl.style.lineHeight = lh;
-    } else {
-      textEl.style.lineHeight = '';
-    }
     const annSize = Math.min(i + 4, SCALE.length - 1);
     annotations.forEach(a => a.style.fontSize = SCALE[annSize] + 'px');
     if (textEl.scrollHeight > maxH) continue;
@@ -217,15 +198,11 @@ function populateLayer(layer) {
   if (slides.length === 0) { textEl.textContent = ''; return; }
   const raw = slides[currentIndex];
   const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  if (BOX_DRAWING_RE.test(raw)) {
-    textEl.innerHTML = escaped.replace(/\n/g, '<br>');
-  } else {
-    textEl.innerHTML = escaped.split('\n').map(line => {
-      const annotated = line.replace(/(\([^)]+\))$/, '<span class="annotation">$1</span>');
-      if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
-      return '<div>' + annotated + '</div>';
-    }).join('');
-  }
+  textEl.innerHTML = escaped.split('\n').map(line => {
+    const annotated = line.replace(/(\([^)]+\))$/, '<span class="annotation">$1</span>');
+    if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
+    return '<div>' + annotated + '</div>';
+  }).join('');
 }
 
 let wipeAnimation = null;

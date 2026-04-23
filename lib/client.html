@@ -6,7 +6,7 @@
 <title>big-words</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -112,6 +112,13 @@
 
   .center { text-align: center; }
 
+  .subtext {
+    font-weight: 300;
+  }
+  :root.font-serif .subtext {
+    font-family: 'DM Sans', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+
   .annotation {
     opacity: 0.65;
   }
@@ -175,10 +182,12 @@ function fitText(layer) {
   const maxH = slideEl.clientHeight;
   const maxW = slideEl.clientWidth;
   const annotations = textEl.querySelectorAll('.annotation');
+  const subtextEl = textEl.querySelector('.subtext');
   const text = slides[currentIndex] || '';
   const singleWord = !/[\s\n]/.test(text.trim());
   for (let i = 0; i < SCALE.length; i++) {
     textEl.style.fontSize = SCALE[i] + 'px';
+    if (subtextEl) subtextEl.style.fontSize = Math.round(SCALE[i] / 2) + 'px';
     const annSize = Math.min(i + 4, SCALE.length - 1);
     annotations.forEach(a => a.style.fontSize = SCALE[annSize] + 'px');
     if (textEl.scrollHeight > maxH) continue;
@@ -197,11 +206,21 @@ function populateLayer(layer) {
   if (slides.length === 0) { textEl.textContent = ''; return; }
   const raw = slides[currentIndex];
   const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  textEl.innerHTML = escaped.split('\n').map(line => {
+  const lines = escaped.split('\n');
+  const blankIdx = lines.findIndex(l => l.trim() === '');
+  const mainLines = blankIdx >= 0 ? lines.slice(0, blankIdx) : lines;
+  const subLines = blankIdx >= 0 ? lines.slice(blankIdx + 1) : [];
+
+  function renderLine(line) {
+    if (line.trim() === '') return '<div>&nbsp;</div>';
     const annotated = line.replace(/\(\((.+?)\)\)/g, '<span class="annotation">$1</span>');
     if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
     return '<div>' + annotated + '</div>';
-  }).join('');
+  }
+
+  let html = mainLines.map(renderLine).join('');
+  if (subLines.length) html += '<div class="subtext"><div>&nbsp;</div>' + subLines.map(renderLine).join('') + '</div>';
+  textEl.innerHTML = html;
 }
 
 let wipeAnimation = null;

@@ -6,7 +6,7 @@
 <title>big-words</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@100;600&family=IBM+Plex+Mono:wght@100;600&family=IBM+Plex+Sans:wght@100;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -113,11 +113,13 @@
   .center { text-align: center; }
 
   .subtext {
-    font-weight: 300;
+    font-weight: 200;
   }
   :root.font-serif .subtext {
     font-family: 'DM Sans', -apple-system, 'Helvetica Neue', Arial, sans-serif;
   }
+
+  .blank { line-height: 0.25; }
 
   .annotation {
     opacity: 0.65;
@@ -212,14 +214,14 @@ function populateLayer(layer) {
   const subLines = blankIdx >= 0 ? lines.slice(blankIdx + 1) : [];
 
   function renderLine(line) {
-    if (line.trim() === '') return '<div>&nbsp;</div>';
+    if (line.trim() === '') return '<div class="blank">&nbsp;</div>';
     const annotated = line.replace(/\(\((.+?)\)\)/g, '<span class="annotation">$1</span>');
     if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
     return '<div>' + annotated + '</div>';
   }
 
   let html = mainLines.map(renderLine).join('');
-  if (subLines.length) html += '<div class="subtext"><div>&nbsp;</div>' + subLines.map(renderLine).join('') + '</div>';
+  if (subLines.length) html += '<div class="blank">&nbsp;</div><div class="subtext">' + subLines.map(renderLine).join('') + '</div>';
   textEl.innerHTML = html;
 }
 

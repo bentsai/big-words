@@ -60,7 +60,7 @@ describe('server', () => {
 
   it('sends slides over WebSocket on connect', async () => {
     const { ws, msg } = await connectAndWaitForMessage(server.port);
-    assert.deepStrictEqual(msg.slides, ['Hello', 'World']);
+    assert.deepStrictEqual(msg.slides, [{ text: 'Hello', align: 'center' }, { text: 'World', align: 'center' }]);
     assert.equal(msg.theme, 'paper');
     assert.equal(msg.font, 'sans');
     ws.close();
@@ -68,7 +68,7 @@ describe('server', () => {
 
   it('sends updated slides when file changes', async () => {
     const { ws, msg: initialMsg } = await connectAndWaitForMessage(server.port);
-    assert.deepStrictEqual(initialMsg.slides, ['Hello', 'World']);
+    assert.deepStrictEqual(initialMsg.slides, [{ text: 'Hello', align: 'center' }, { text: 'World', align: 'center' }]);
 
     // Wait for file change and next message
     const updatePromise = new Promise((resolve, reject) => {
@@ -87,7 +87,7 @@ describe('server', () => {
     fs.writeFileSync(tmpFile, 'Updated');
 
     const msg = await updatePromise;
-    assert.deepStrictEqual(msg.slides, ['Updated']);
+    assert.deepStrictEqual(msg.slides, [{ text: 'Updated', align: 'center' }]);
     ws.close();
   });
 
@@ -113,7 +113,7 @@ describe('server', () => {
     const msg = await updatePromise;
     assert.equal(msg.theme, 'ink');
     assert.equal(msg.font, 'mono');
-    assert.deepStrictEqual(msg.slides, ['New slide']);
+    assert.deepStrictEqual(msg.slides, [{ text: 'New slide', align: 'center' }]);
     ws.close();
   });
 });

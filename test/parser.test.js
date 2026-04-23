@@ -2,7 +2,7 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const { parseSlides } = require('../lib/parser.js');
 
-const DEFAULTS = { theme: 'paper', font: 'sans' };
+const DEFAULTS = { theme: 'paper', font: 'sans', transition: 'none' };
 
 describe('parseSlides', () => {
   it('returns a single slide when no separator', () => {
@@ -79,6 +79,16 @@ describe('parseSlides', () => {
   it('ignores invalid theme/font values', () => {
     const result = parseSlides('theme: neon\nfont: comic\n---\nSlide');
     assert.deepStrictEqual(result.config, DEFAULTS);
+  });
+
+  it('parses transition from front matter', () => {
+    const result = parseSlides('transition: wipe\n---\nSlide');
+    assert.equal(result.config.transition, 'wipe');
+  });
+
+  it('ignores invalid transition values', () => {
+    const result = parseSlides('transition: fade\n---\nSlide');
+    assert.equal(result.config.transition, 'none');
   });
 
   it('handles empty front matter', () => {

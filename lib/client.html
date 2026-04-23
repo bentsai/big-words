@@ -45,18 +45,6 @@
   :root.gradient body {
     background: transparent;
   }
-  :root.gradient body::before {
-    content: '';
-    position: fixed;
-    inset: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(to right, #0aa0f5 0%, #2ce0bf 19%, #76dd2c 40%, #f5a40a 60%, #f50ad6 83%, #0aa0f5 100%);
-    background-size: 10000px 100%;
-    animation: gradient 240s linear infinite;
-    transform: rotate(-16deg);
-    z-index: -1;
-  }
   @keyframes gradient {
     0% { background-position-x: 0; }
     100% { background-position-x: 10000px; }
@@ -77,7 +65,33 @@
     font-family: var(--font);
   }
 
-  #slide {
+  .layer {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    color: var(--fg);
+    clip-path: inset(0 100% 0 0);
+  }
+  .layer.active {
+    clip-path: none;
+  }
+  :root.gradient .layer {
+    background: transparent;
+  }
+  :root.gradient .layer::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(to right, #0aa0f5 0%, #2ce0bf 19%, #76dd2c 40%, #f5a40a 60%, #f50ad6 83%, #0aa0f5 100%);
+    background-size: 10000px 100%;
+    animation: gradient 240s linear infinite;
+    transform: rotate(-16deg);
+    z-index: -1;
+  }
+
+  .slide {
     position: absolute;
     top: 3%;
     left: 4%;
@@ -87,7 +101,7 @@
     align-items: center;
   }
 
-  #text {
+  .text {
     width: 100%;
     white-space: pre-wrap;
     overflow-wrap: break-word;
@@ -105,13 +119,21 @@
 </style>
 </head>
 <body>
-<div id="slide">
-  <div id="text"></div>
+<div id="layer-a" class="layer active">
+  <div id="slide" class="slide">
+    <div id="text" class="text"></div>
+  </div>
+</div>
+<div id="layer-b" class="layer">
+  <div class="slide">
+    <div class="text"></div>
+  </div>
 </div>
 <script>
 const SCALE = [1334,1112,926,772,643,536,446,372,310,258,215,179,149,124,104,86,72,60,50,42];
-const textEl = document.getElementById('text');
-const slideEl = document.getElementById('slide');
+const layerA = { layer: document.getElementById('layer-a'), slide: document.getElementById('slide'), text: document.getElementById('text') };
+const layerB = { layer: document.getElementById('layer-b'), slide: document.querySelector('#layer-b .slide'), text: document.querySelector('#layer-b .text') };
+let activeLayer = layerA;
 
 const FONTS = ['sans', 'mono', 'serif'];
 const THEMES = ['paper', 'ink', 'presenter', 'gradient'];
@@ -120,6 +142,7 @@ let slides = [];
 let currentIndex = 0;
 let currentFont = 'sans';
 let currentTheme = 'paper';
+let currentTransition = 'none';
 
 function applyFont(font) {
   currentFont = font;
@@ -156,9 +179,11 @@ function measureBoxDrawingLineHeight(font, fontSize) {
   return (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) / fontSize - 0.02;
 }
 
-const BOX_DRAWING_RE = /[\u2500-\u257F]/;
+const BOX_DRAWING_RE = /[─-╿]/;
 
-function fitText() {
+function fitText(layer) {
+  const slideEl = layer.slide;
+  const textEl = layer.text;
   const maxH = slideEl.clientHeight;
   const maxW = slideEl.clientWidth;
   const annotations = textEl.querySelectorAll('.annotation');
@@ -187,21 +212,85 @@ function fitText() {
   }
 }
 
-function renderSlide() {
-  if (slides.length === 0) {
-    textEl.textContent = '';
-    return;
+function populateLayer(layer) {
+  const textEl = layer.text;
+  if (slides.length === 0) { textEl.textContent = ''; return; }
+  const raw = slides[currentIndex];
+  const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (BOX_DRAWING_RE.test(raw)) {
+    textEl.innerHTML = escaped.replace(/\n/g, '<br>');
+  } else {
+    textEl.innerHTML = escaped.split('\n').map(line => {
+      const annotated = line.replace(/(\([^)]+\))$/, '<span class="annotation">$1</span>');
+      if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
+      return '<div>' + annotated + '</div>';
+    }).join('');
   }
+}
+
+let wipeAnimation = null;
+const WIPE_DURATION = 1200;
+
+function commitWipe() {
+  if (!wipeAnimation) return;
+  const { incoming, outgoing, anim } = wipeAnimation;
+  wipeAnimation = null;
+  incoming.layer.classList.add('active');
+  anim.cancel();
+  outgoing.layer.classList.remove('active');
+  incoming.layer.style.zIndex = '';
+  outgoing.layer.style.zIndex = '';
+  outgoing.layer.style.background = '';
+  outgoing.layer.style.color = '';
+  outgoing.text.textContent = '';
+  activeLayer = incoming;
+}
+
+function renderSlide(direction) {
   if (currentIndex >= slides.length) currentIndex = slides.length - 1;
   if (currentIndex < 0) currentIndex = 0;
-  const escaped = slides[currentIndex].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  textEl.innerHTML = escaped.split('\n').map(line => {
-    const annotated = line.replace(/(\([^)]+\))$/, '<span class="annotation">$1</span>');
-    if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
-    return '<div>' + annotated + '</div>';
-  }).join('');
-  updateThemeDisplay();
-  fitText();
+
+  if (currentTransition === 'wipe' && direction) {
+    if (wipeAnimation) { commitWipe(); }
+    const incoming = activeLayer === layerA ? layerB : layerA;
+    const outgoing = activeLayer;
+
+    // Freeze outgoing appearance before theme changes
+    if (currentTheme !== 'gradient') {
+      const cs = getComputedStyle(outgoing.layer);
+      outgoing.layer.style.background = cs.backgroundColor;
+      outgoing.layer.style.color = cs.color;
+    }
+
+    updateThemeDisplay();
+
+    populateLayer(incoming);
+    fitText(incoming);
+
+    // Stack incoming on top, both visible during animation
+    incoming.layer.style.zIndex = 2;
+    outgoing.layer.style.zIndex = 1;
+    outgoing.layer.classList.add('active');
+
+    // tan(8°) * 100vh ≈ 14vh skew; 28vh lets trailing edge fully clear viewport
+    const clipFrom = direction === 'forward'
+      ? 'polygon(calc(100% + 14vh) 0, 200% 0, 200% 100%, 100% 100%)'
+      : 'polygon(0 0, -100% 0, -100% 100%, calc(0% - 14vh) 100%)';
+    const clipTo = direction === 'forward'
+      ? 'polygon(-14vh 0, 200% 0, 200% 100%, calc(0% - 28vh) 100%)'
+      : 'polygon(calc(100% + 28vh) 0, -100% 0, -100% 100%, calc(100% + 14vh) 100%)';
+
+    const anim = incoming.layer.animate(
+      [{ clipPath: clipFrom }, { clipPath: clipTo }],
+      { duration: WIPE_DURATION, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' }
+    );
+    wipeAnimation = { incoming, outgoing, anim };
+    anim.onfinish = () => { commitWipe(); };
+  } else {
+    updateThemeDisplay();
+    populateLayer(activeLayer);
+    fitText(activeLayer);
+  }
 }
 
 document.addEventListener('keydown', (e) => {
@@ -209,20 +298,20 @@ document.addEventListener('keydown', (e) => {
     case 'ArrowRight':
     case ' ':
     case 'Enter':
-      if (currentIndex < slides.length - 1) { currentIndex++; renderSlide(); }
+      if (currentIndex < slides.length - 1) { currentIndex++; renderSlide('forward'); }
       e.preventDefault();
       break;
     case 'ArrowLeft':
     case 'Backspace':
-      if (currentIndex > 0) { currentIndex--; renderSlide(); }
+      if (currentIndex > 0) { currentIndex--; renderSlide('backward'); }
       e.preventDefault();
       break;
     case 'Home':
-      currentIndex = 0; renderSlide();
+      currentIndex = 0; renderSlide('backward');
       e.preventDefault();
       break;
     case 'End':
-      currentIndex = slides.length - 1; renderSlide();
+      currentIndex = slides.length - 1; renderSlide('forward');
       e.preventDefault();
       break;
     case 'f':
@@ -234,17 +323,20 @@ document.addEventListener('keydown', (e) => {
       applyTheme(THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length]);
       e.preventDefault();
       break;
-    case 'b':
-      textEl.style.visibility = textEl.style.visibility === 'hidden' ? '' : 'hidden';
+    case 'b': {
+      const vis = activeLayer.text.style.visibility === 'hidden' ? '' : 'hidden';
+      layerA.text.style.visibility = vis;
+      layerB.text.style.visibility = vis;
       e.preventDefault();
       break;
+    }
   }
 });
 
 let resizeRaf;
 window.addEventListener('resize', () => {
   cancelAnimationFrame(resizeRaf);
-  resizeRaf = requestAnimationFrame(renderSlide);
+  resizeRaf = requestAnimationFrame(() => renderSlide());
 });
 
 const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -257,6 +349,7 @@ function connect() {
     if (data.title) document.title = data.title;
     applyTheme(data.theme || 'paper');
     applyFont(data.font || 'sans');
+    currentTransition = data.transition || 'none';
 
     renderSlide();
   });

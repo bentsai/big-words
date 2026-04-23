@@ -175,7 +175,8 @@ test('gradient theme body is transparent so pseudo-element shows through', async
 
   const result = await page.evaluate(() => {
     const bodyBg = getComputedStyle(document.body).backgroundColor;
-    const before = getComputedStyle(document.body, '::before');
+    const layer = document.querySelector('.layer.active');
+    const before = getComputedStyle(layer, '::before');
     const hasBgImage = before.backgroundImage.includes('gradient');
     return { bodyBg, hasBgImage };
   });

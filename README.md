@@ -52,6 +52,7 @@ Configuration goes at the top of the file, before the first `---`:
 |-----|--------|---------|
 | `theme` | `paper`, `ink`, `presenter`, `gradient` | `paper` |
 | `font` | `sans`, `mono`, `serif` | `sans` |
+| `transition` | `wipe` | `none` |
 
 ### Slides
 

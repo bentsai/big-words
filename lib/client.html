@@ -113,8 +113,7 @@
   .center { text-align: center; }
 
   .annotation {
-    font-style: italic;
-    opacity: 0.5;
+    opacity: 0.65;
   }
 </style>
 </head>
@@ -199,7 +198,7 @@ function populateLayer(layer) {
   const raw = slides[currentIndex];
   const escaped = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   textEl.innerHTML = escaped.split('\n').map(line => {
-    const annotated = line.replace(/(\([^)]+\))$/, '<span class="annotation">$1</span>');
+    const annotated = line.replace(/\(\((.+?)\)\)/g, '<span class="annotation">$1</span>');
     if (annotated.startsWith('\t')) return '<div class="center">' + annotated.replace(/^\t+/, '') + '</div>';
     return '<div>' + annotated + '</div>';
   }).join('');

@@ -301,9 +301,9 @@ test('text with long words still scales up by wrapping at word boundaries', asyn
   await page.waitForFunction(() => document.getElementById('text').textContent === 'Ship', { timeout: 5000 });
 });
 
-test('parenthetical text at end of line renders as smaller italic annotation', async ({ page }) => {
+test('double-paren annotation renders smaller with reduced opacity', async ({ page }) => {
   await page.waitForTimeout(500);
-  fs.writeFileSync(tmpFile, 'Do not be like them (Matthew 6:8)');
+  fs.writeFileSync(tmpFile, 'Do not be like them ((Matthew 6:8))');
   await page.goto(`http://localhost:${server.port}`);
   await page.waitForFunction(() => document.getElementById('text').textContent.includes('Matthew'), { timeout: 5000 });
 
@@ -319,7 +319,6 @@ test('parenthetical text at end of line renders as smaller italic annotation', a
     return {
       found: true,
       text: ann.textContent,
-      italic: getComputedStyle(ann).fontStyle === 'italic',
       opacity: getComputedStyle(ann).opacity,
       parentSize,
       annSize,
@@ -328,8 +327,7 @@ test('parenthetical text at end of line renders as smaller italic annotation', a
   });
 
   expect(result.found).toBe(true);
-  expect(result.text).toBe('(Matthew 6:8)');
-  expect(result.italic).toBe(true);
+  expect(result.text).toBe('Matthew 6:8');
   expect(parseFloat(result.opacity)).toBeLessThan(1);
   expect(result.stepsDiff).toBe(4);
 

@@ -1,4 +1,4 @@
-# big-words
+# Big Words
 
 Present text as large as possible. A CLI tool that watches a text file and displays each slide in the browser with text scaled to fill the viewport.
 
